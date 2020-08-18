@@ -48,6 +48,7 @@ def loadCSVFile (file:str, lst:list,sep=";" )->list:
         Borra la lista e informa al usuario
     Returns: None   
     """
+   
     del lst[:]
     print("Cargando archivo ....")
     t1_start = process_time() #tiempo inicial
@@ -75,7 +76,7 @@ def printMenu():
     print("3- Contar elementos filtrados por palabra clave")
     print("4- Consultar elementos a partir de dos listas")
     print("0- Salir")
-
+id = []
 def countElementsFilteredByColumn(criteria, column, lst):
     """
     Retorna cuantos elementos coinciden con un criterio para una columna dada  
@@ -90,7 +91,6 @@ def countElementsFilteredByColumn(criteria, column, lst):
         counter :: int
             la cantidad de veces ue aparece un elemento con el criterio definido
     """
-    directors_id = []
     if len(lst)==0:
         print("La lista esta vacía")  
         return 0
@@ -100,22 +100,27 @@ def countElementsFilteredByColumn(criteria, column, lst):
         for element in lst:
             if criteria.lower() in element[column].lower(): #filtrar por palabra clave 
                 counter+=1
-                directors_id.append(element["id"])
+                id.append(element["id"])
         t1_stop = process_time() #tiempo final
         print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
-    return counter,directors_id
-
-def countElementsByCriteria(criteria, column, list,directors_id):
+        
+    return counter
+def countElementsByCriteria(criteria, column, lst):
     """
     Retorna la cantidad de elementos que cumplen con un criterio para una columna dada
     """
-    promedio=0
-    counter=0
-    for element in list:
-        if element[column] in directors_id and float(element["vote_average"]) >= float(6):
-            counter += 1 
-            promedio += float(element["vote_average"] )
-    return counter,(promedio/counter)
+    counter = 0
+    sumatoria = 0
+    for element in lst:
+        if element["id"] in id and float(element[column]) >= 6:  
+            counter+=1
+            sumatoria+=float(element[column])
+    try:
+        promedio = sumatoria/counter
+        return counter,promedio
+    except:
+        print("No se encontró ninguna película buena de este director")    
+    
 
 def main():
     """
@@ -126,33 +131,29 @@ def main():
     Return: None 
     """
     lista = [] #instanciar una lista vacia
-    lista2 = []
+    lista0 = []
     while True:
         printMenu() #imprimir el menu de opciones en consola
         inputs =input('Seleccione una opción para continuar\n') #leer opción ingresada
         if len(inputs)>0:
             if int(inputs[0])==1: #opcion 1
                 loadCSVFile("Data/SmallMoviesDetailsCleaned.csv", lista) #llamar funcion cargar datos
-                loadCSVFile("Data/MoviesCastingRaw-small.csv", lista2)
-                print("Datos cargados, "+str(len(lista)+len(lista2))+" elementos cargados")
+                loadCSVFile("Data/MoviesCastingRaw-small.csv", lista0)
+                print("Datos cargados, "+str(len(lista)+len(lista0))+" elementos cargados")
+
             elif int(inputs[0])==2: #opcion 2
                 if len(lista)==0: #obtener la longitud de la lista
                     print("La lista esta vacía")    
                 else: print("La lista tiene "+str(len(lista))+" elementos")
             elif int(inputs[0])==3: #opcion 3
-                criteria =input('Ingrese el nombre del director de interes\n')
-                counter=countElementsFilteredByColumn(criteria,"director_name", lista2) #filtrar una columna por criterio  
-                print("Coinciden ",counter[1]," elementos con el crtierio: ", criteria  )
+                criteria =input('Ingrese el criterio de búsqueda\n')
+                counter=countElementsFilteredByColumn(criteria, "director_name", lista0) #filtrar una columna por criterio  
+                print("Coinciden ",counter," elementos con el crtierio: ", criteria  )
             elif int(inputs[0])==4: #opcion 4
-                criteria =input('Ingrese el nombre de director de interes\n')
-                directors_id=(countElementsFilteredByColumn(criteria,"director_name", lista2))[1]
-                counter=countElementsByCriteria(criteria,"id",lista,directors_id)
-                print("Coinciden ",counter[0]," elementos con el crtierio:", criteria ,"Con un promedio de:", round(counter[1],3))
-            elif int(inputs[0])==4: #opcion 4
-                criteria =input('Ingrese el nombre de director de interes\n')
-                directors_id=(countElementsFilteredByColumn(criteria,"director_name", lista2))[1]
-                resp=countElementsByCriteria(criteria,"id",lista,directors_id)
-                print("Coinciden ",resp[0]," elementos con el crtierio:", criteria ,"Con un promedio de:", resp[1])
+                criteria =input('Ingrese el criterio de búsqueda\n')
+                countElementsFilteredByColumn(criteria, "director_name", lista0)
+                counter=countElementsByCriteria(criteria,"vote_average",lista)
+                print("Coinciden ",counter[0]," elementos con el crtierio: '", criteria ," con un promedio de :", round(counter[1],3))
             elif int(inputs[0])==0: #opcion 0, salir
                 sys.exit(0) 
 
