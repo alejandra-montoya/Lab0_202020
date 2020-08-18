@@ -31,10 +31,12 @@ import sys
 import csv
 from time import process_time 
 
-def loadCSVFile (file, lst, sep=";"):
+def loadCSVFile (file:str, lst:list,sep=";" )->list:
+
     """
     Carga un archivo csv a una lista
     Args:
+    
         file 
             Archivo de texto del cual se cargaran los datos requeridos.
         lst :: []
@@ -50,11 +52,11 @@ def loadCSVFile (file, lst, sep=";"):
     del lst[:]
     print("Cargando archivo ....")
     t1_start = process_time() #tiempo inicial
-    dialect = csv.excel()
-    dialect.delimiter=sep
+    elementos = csv.excel()
+    elementos.delimiter=sep
     try:
         with open(file, encoding="utf-8") as csvfile:
-            spamreader = csv.DictReader(csvfile, dialect=dialect)
+            spamreader = csv.DictReader(csvfile, dialect=elementos)
             for row in spamreader: 
                 lst.append(row)
     except:
@@ -103,7 +105,6 @@ def countElementsFilteredByColumn(criteria, column, lst):
         print("Tiempo de ejecución ",t1_stop-t1_start," segundos")
         
     return counter
-
 def countElementsByCriteria(criteria, column, lst):
     """
     Retorna la cantidad de elementos que cumplen con un criterio para una columna dada
@@ -114,8 +115,12 @@ def countElementsByCriteria(criteria, column, lst):
         if element["id"] in id and float(element[column]) >= 6:  
             counter+=1
             sumatoria+=float(element[column])
-    promedio = sumatoria/counter    
-    return counter,promedio 
+    try:
+        promedio = sumatoria/counter
+        return counter,promedio
+    except:
+        print("No se encontró ninguna película buena de este director")    
+    
 
 def main():
     """
@@ -132,12 +137,10 @@ def main():
         inputs =input('Seleccione una opción para continuar\n') #leer opción ingresada
         if len(inputs)>0:
             if int(inputs[0])==1: #opcion 1
-                loadCSVFile("Data/MoviesCastingRaw-small.csv", lista0)
-                print("Datos cargados, "+str(len(lista0))+" elementos cargados")
                 loadCSVFile("Data/SmallMoviesDetailsCleaned.csv", lista) #llamar funcion cargar datos
-                print("Datos cargados, "+str(len(lista))+" elementos cargados")
-                
-                
+                loadCSVFile("Data/MoviesCastingRaw-small.csv", lista0)
+                print("Datos cargados, "+str(len(lista)+len(lista0))+" elementos cargados")
+
             elif int(inputs[0])==2: #opcion 2
                 if len(lista)==0: #obtener la longitud de la lista
                     print("La lista esta vacía")    
@@ -148,11 +151,12 @@ def main():
                 print("Coinciden ",counter," elementos con el crtierio: ", criteria  )
             elif int(inputs[0])==4: #opcion 4
                 criteria =input('Ingrese el criterio de búsqueda\n')
+                countElementsFilteredByColumn(criteria, "director_name", lista0)
                 counter=countElementsByCriteria(criteria,"vote_average",lista)
-                print("Coinciden ",counter[0]," elementos con el crtierio: '", criteria ,"' (en construcción ...)")
-                print("El promedio de votación es de: ",counter[1])
+                print("Coinciden ",counter[0]," elementos con el crtierio: '", criteria ," con un promedio de :", round(counter[1],3))
             elif int(inputs[0])==0: #opcion 0, salir
-                sys.exit(0)
+                sys.exit(0) 
 
 if __name__ == "__main__":
     main()
+
